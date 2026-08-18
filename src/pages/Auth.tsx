@@ -53,7 +53,6 @@ export default function Auth() {
           password,
           options: {
             data: { full_name: fullName, phone: phone ? `+254${phone}` : "" },
-            emailRedirectTo: window.location.origin + "/dashboard",
           },
         });
         if (error) throw error;
