@@ -31,6 +31,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { buildCallbackUrl, DEFAULT_CALLBACK_PATH, getEndpointLimit, getSiteFromCallbackUrl, normalizeSiteUrl } from "@/lib/endpoint-utils";
 import EndpointQR from "@/components/EndpointQR";
+import PaymentLinkGenerator from "@/components/PaymentLinkGenerator";
 
 export default function Endpoints() {
   const { user, profile } = useAuth();
@@ -523,6 +524,7 @@ Generate a complete frontend-only integration with error handling.`}</pre>
                             <ApiSecuritySection endpoint={ep} projectId={projectId} onChange={fetchEndpoints} copy={copyToClipboard} />
                             <div className="flex items-center gap-3 flex-wrap">
                               <EndpointQR endpointId={ep.id} apiKey={ep.api_key} projectName={ep.name} />
+                              <PaymentLinkGenerator apiKey={ep.api_key} endpointName={ep.name} />
                               <Button size="sm" variant="outline" className="btn-press" onClick={() => { setEditingId(ep.id); setEditName(ep.name); setEditSiteUrl(getSiteFromCallbackUrl(ep.callback_url)); }}><Edit className="w-4 h-4 mr-1" /> Edit</Button>
                               <Button size="sm" variant="outline" className="text-destructive btn-press" onClick={() => handleDelete(ep.id)}><Trash2 className="w-4 h-4 mr-1" /> Delete</Button>
                             </div>
