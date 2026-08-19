@@ -231,6 +231,40 @@ Deno.serve(async (req) => {
         (allProfiles || []).forEach((p: any) => { if (p.banned) statusBreakdown.banned++; else statusBreakdown[p.account_status as keyof typeof statusBreakdown]++; });
         return json({ users: userCount || 0, transactions: txCount || 0, endpoints: epCount || 0, revenue, totalVolume, totalDeposits, totalWithdrawals, pendingKyc: pendingKyc || 0, flaggedUsers: flaggedCount || 0, pendingWithdrawals: pendingWithdrawals || 0, chartData, statusBreakdown });
       }
+      case "send_welcome_email": {
+        // Fetch user email and name
+        const { data: au } = await supabase.auth.admin.getUserById(params.user_id);
+        if (!au?.user?.email) return json({ error: "User not found" }, 404);
+        const { data: prof } = await supabase.from("profiles").select("full_name").eq("id", params.user_id).single();
+        const uname = prof?.full_name || "";
+        const uemail = au.user.email;
+        // Send via welcome-email edge function
+        const welcomeRes = await fetch(`${supabaseUrl}/functions/v1/welcome-email`, {
+          method: "POST",
+          headers: { "Authorization": authHeader, "Content-Type": "application/json", "apikey": anonKey },
+          body: JSON.stringify({ user_id: params.user_id }),
+        });
+        const welcomeData = await welcomeRes.json();
+        if (!welcomeRes.ok) return json({ error: "Email failed", details: welcomeData }, 502);
+        return json({ success: true, email: uemail, messageId: welcomeData.messageId });
+      }
+      case "send_bulk_welcome": {
+        // Send welcome email to all users (or filtered list)
+        const { data: allUsers } = await supabase.from("profiles").select("id");
+        const userIds = params.user_ids || (allUsers || []).map((u: any) => u.id);
+        const results: { success: number; failed: number; errors: string[] } = { success: 0, failed: 0, errors: [] };
+        for (const uid of userIds.slice(0, 50)) { // Cap at 50 per call
+          try {
+            const r = await fetch(`${supabaseUrl}/functions/v1/welcome-email`, {
+              method: "POST",
+              headers: { "Authorization": authHeader, "Content-Type": "application/json", "apikey": anonKey },
+              body: JSON.stringify({ user_id: uid }),
+            });
+            if (r.ok) results.success++; else { results.failed++; const d = await r.json(); results.errors.push(d.error || "unknown"); }
+          } catch { results.failed++; results.errors.push("fetch error"); }
+        }
+        return json({ success: true, ...results, total: userIds.length });
+      }
       default: return json({ error: "Unknown action" }, 400);
     }
   } catch (err) {

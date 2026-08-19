@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import {
   Shield, Users, BarChart3, CheckCircle2, XCircle, Clock, Eye, Ban, Edit, Search,
   DollarSign, Zap, Image, UserCheck, AlertTriangle, Flag, ArrowUpRight, ArrowDownRight,
-  Megaphone, MessageCircle, Settings, Crown, TrendingUp, Plus, Trash2, Radio, Wallet, Bot
+  Megaphone, MessageCircle, Settings, Crown, TrendingUp, Plus, Trash2, Radio, Wallet, Bot, Mail
 } from "lucide-react";
 import ProfitWallets from "@/components/admin/ProfitWallets";
 import AdminCards from "@/components/admin/AdminCards";
@@ -69,8 +69,10 @@ export default function AdminPanel() {
   const [editingPkg, setEditingPkg] = useState<any>(null);
   const [settingEdits, setSettingEdits] = useState<Record<string, string>>({});
   const [frResponse, setFrResponse] = useState("");
+  const [sendingWelcome, setSendingWelcome] = useState<string | null>(null);
   const [balanceEdit, setBalanceEdit] = useState({ userId: "", walletType: "income", amount: "" });
   const [showBalanceDialog, setShowBalanceDialog] = useState(false);
+  const [bulkWelcomeLoading, setBulkWelcomeLoading] = useState(false);
   const [channelApproval, setChannelApproval] = useState<any>(null);
   const [channelId, setChannelId] = useState("");
 
@@ -263,6 +265,7 @@ export default function AdminPanel() {
                 <div className="flex gap-2">
                   <div className="relative w-64"><Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" /><Input placeholder="Search..." value={userSearch} onChange={(e) => setUserSearch(e.target.value)} className="pl-9" /></div>
                   <Button size="sm" variant="outline" onClick={() => setShowBalanceDialog(true)}><Wallet className="w-3.5 h-3.5 mr-1" /> Edit Balance</Button>
+                  <Button size="sm" variant="outline" disabled={bulkWelcomeLoading} onClick={async () => { setBulkWelcomeLoading(true); try { const r = await invokeAdmin("send_bulk_welcome"); toast({ title: `Welcome emails sent! 📬 (${r.success}/${r.total})` }); } catch (err: any) { toast({ title: "Failed", description: err.message, variant: "destructive" }); } finally { setBulkWelcomeLoading(false); } }}>{bulkWelcomeLoading ? "Sending..." : "📧 Send Welcome to All"}</Button>
                 </div>
               </div>
             </CardHeader>
@@ -296,6 +299,7 @@ export default function AdminPanel() {
                           <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => handleFlagUser(u.id, !u.flagged)}><Flag className={`w-3 h-3 ${u.flagged ? "text-amber-500" : "text-muted-foreground"}`} /></Button>
                           {u.flagged && <Button size="sm" variant="ghost" className="h-6 px-2 text-[10px] text-emerald-500" onClick={() => handleIgnoreFlag(u.id)}>Ignore</Button>}
                           <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => handleToggleActivation(u.id)}><Zap className={`w-3 h-3 ${u.activation_paid ? "text-emerald-500" : "text-muted-foreground"}`} /></Button>
+                          <Button size="icon" variant="ghost" className="h-6 w-6" title="Send welcome email" disabled={sendingWelcome === u.id} onClick={async () => { setSendingWelcome(u.id); try { await invokeAdmin("send_welcome_email", { user_id: u.id }); toast({ title: "Welcome email sent! 📬" }); } catch (err: any) { toast({ title: "Failed", description: err.message, variant: "destructive" }); } finally { setSendingWelcome(null); } }}><Mail className={`w-3 h-3 ${sendingWelcome === u.id ? "animate-pulse text-primary" : "text-muted-foreground"}`} /></Button>
                           {!(u.roles || []).includes("admin") && <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => handleAddAdmin(u.id)}><Crown className="w-3 h-3 text-primary" /></Button>}
                           {(u.roles || []).includes("admin") && <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => handleRemoveAdmin(u.id)}><XCircle className="w-3 h-3 text-destructive" /></Button>}
                         </div>
@@ -718,6 +722,22 @@ export default function AdminPanel() {
                     <Switch checked={editingUser[p.key]} onCheckedChange={(v) => setEditingUser((prev: any) => ({ ...prev, [p.key]: v }))} />
                   </div>
                 ))}
+              </div>
+              <div className="border-t border-border pt-3">
+                <h4 className="text-sm font-bold text-foreground mb-3">Actions</h4>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" disabled={sendingWelcome === editingUser.id} onClick={async () => {
+                    setSendingWelcome(editingUser.id);
+                    try {
+                      await invokeAdmin("send_welcome_email", { user_id: editingUser.id });
+                      toast({ title: "Welcome email sent! 📬" });
+                    } catch (err: any) {
+                      toast({ title: "Failed", description: err.message || "Email send error", variant: "destructive" });
+                    } finally { setSendingWelcome(null); }
+                  }}>
+                    {sendingWelcome === editingUser.id ? "Sending..." : "📧 Send Welcome Email"}
+                  </Button>
+                </div>
               </div>
               <div className="border-t border-border pt-3">
                 <h4 className="text-sm font-bold text-foreground mb-2">Disabled gateways for this user</h4>

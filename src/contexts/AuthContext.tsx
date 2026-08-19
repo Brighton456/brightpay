@@ -79,6 +79,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsAdmin((data && data.length > 0) || false);
   };
 
+  const triggerWelcomeEmail = async (userId: string) => {
+    try {
+      // Check if profile was just created (within last 5 minutes)
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("created_at")
+        .eq("id", userId)
+        .single();
+      if (!profile) return;
+      const createdAt = new Date(profile.created_at).getTime();
+      const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
+      if (createdAt < fiveMinutesAgo) return; // Not a new user
+      // Check if welcome email already sent
+      const { data: sent } = await supabase
+        .from("profiles")
+        .select("welcome_email_sent")
+        .eq("id", userId)
+        .single();
+      if ((sent as any)?.welcome_email_sent) return;
+      // Mark as sent first (idempotent)
+      await supabase.from("profiles").update({ welcome_email_sent: true } as any).eq("id", userId);
+      // Fire and forget — don't block the UI
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+      const { data: { session } } = await supabase.auth.getSession();
+      fetch(`${supabaseUrl}/functions/v1/welcome-email`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": anonKey,
+          ...(session?.access_token ? { "Authorization": `Bearer ${session.access_token}` } : {}),
+        },
+        body: JSON.stringify({ user_id: userId }),
+      }).catch(() => {}); // intentionally fire-and-forget
+    } catch {
+      // Non-critical — don't break auth flow
+    }
+  };
+
   const refreshProfile = async () => {
     if (user) await fetchProfile(user.id);
   };
@@ -98,6 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           fetchProfile(session.user.id);
           fetchWallets(session.user.id);
           checkAdmin(session.user.id);
+          triggerWelcomeEmail(session.user.id);
         }, 0);
       } else {
         setProfile(null);
@@ -115,6 +155,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         fetchProfile(session.user.id);
         fetchWallets(session.user.id);
         checkAdmin(session.user.id);
+        triggerWelcomeEmail(session.user.id);
       }
       setLoading(false);
     });

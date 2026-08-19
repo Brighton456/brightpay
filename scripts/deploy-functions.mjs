@@ -45,6 +45,7 @@ const FUNCTIONS = {
   "mpay-callback": { verify_jwt: false },
   "stk-push": { verify_jwt: true },
   "swiftwallet-callback": { verify_jwt: false },
+  "welcome-email": { verify_jwt: false },
 };
 
 const BUILD_DIR = join(ROOT, "scripts", ".build");
