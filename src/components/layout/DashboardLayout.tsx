@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTransactionNotifications } from "@/hooks/use-transaction-notifications";
 import QuickPayFAB from "@/components/QuickPayFAB";
+import GlobalSearch from "@/components/GlobalSearch";
+import NotificationCenter from "@/components/NotificationCenter";
 
 const allNavItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard", minTier: "idle" },
@@ -172,11 +174,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Menu className="w-5 h-5" />
           </Button>
           <div className="flex-1" />
+          <GlobalSearch />
           <div className="flex items-center gap-2 ml-auto">
-            <Button variant="ghost" size="icon" className="h-9 w-9 relative">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-destructive" />
-            </Button>
+            <NotificationCenter userId={user?.id || ""} />
           </div>
         </header>
 

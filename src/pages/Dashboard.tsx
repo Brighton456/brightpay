@@ -23,6 +23,12 @@ import { generateReceipt } from "@/lib/receipt";
 import TransactionHeatmap from "@/components/TransactionHeatmap";
 import AchievementBadges from "@/components/AchievementBadges";
 import EndpointComparison from "@/components/EndpointComparison";
+import PaymentTemplates from "@/components/PaymentTemplates";
+import CurrencyConverter from "@/components/CurrencyConverter";
+import BillSplitter from "@/components/BillSplitter";
+import SmartAmountChips from "@/components/SmartAmountChips";
+import WeeklySummary from "@/components/WeeklySummary";
+import ActivityTimeline from "@/components/ActivityTimeline";
 
 const statusIcon: Record<string, JSX.Element> = {
   completed: <CheckCircle2 className="w-4 h-4 text-emerald" />,
@@ -348,6 +354,20 @@ export default function Dashboard() {
       {/* Heatmap */}
       <div className="mb-4 sm:mb-6">
         <TransactionHeatmap transactions={transactions} />
+      </div>
+
+
+      {/* Tools Grid */}
+      <div className="mb-4 sm:mb-6 grid md:grid-cols-2 gap-4 sm:gap-6">
+        <div className="space-y-4 sm:space-y-6">
+          <WeeklySummary transactions={allTransactions} incomeBalance={Number(incomeBalance)} serviceBalance={Number(serviceBalance)} />
+          <CurrencyConverter />
+          <BillSplitter />
+        </div>
+        <div className="space-y-4 sm:space-y-6">
+          <PaymentTemplates onUse={(phone, amt, ref) => { toast({ title: "Template ready", description: `KES ${amt.toLocaleString()} to ${phone || "any phone"}` }); }} />
+          <ActivityTimeline transactions={transactions} />
+        </div>
       </div>
 
       {/* Recent Transactions */}

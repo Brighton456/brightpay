@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Zap, X, Send, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import SmartAmountChips from "@/components/SmartAmountChips";
 
 export default function QuickPayFAB() {
   const { user } = useAuth();
@@ -16,6 +17,13 @@ export default function QuickPayFAB() {
   const [amount, setAmount] = useState("");
   const [reference, setReference] = useState("");
   const [loading, setLoading] = useState(false);
+  const [recentTxs, setRecentTxs] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (user && open) {
+      supabase.from("transactions").select("amount, status").eq("user_id", user.id).eq("status", "completed").limit(20).then(({ data }) => setRecentTxs((data as any[]) || []));
+    }
+  }, [user, open]);
 
   const handlePay = async () => {
     const amt = Number(amount);
@@ -92,6 +100,7 @@ export default function QuickPayFAB() {
           </DialogHeader>
           <div className="space-y-4 mt-2">
             <p className="text-xs text-muted-foreground">Initiate a quick STK push payment from your active endpoint.</p>
+            <SmartAmountChips transactions={recentTxs} onSelect={(a) => setAmount(String(a))} />
             <div>
               <Label>Phone Number</Label>
               <Input
