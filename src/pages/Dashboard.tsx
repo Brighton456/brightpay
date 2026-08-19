@@ -17,6 +17,12 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useCountUp } from "@/hooks/use-count-up";
+import { Download } from "lucide-react";
+import { generateReceipt } from "@/lib/receipt";
+import TransactionHeatmap from "@/components/TransactionHeatmap";
+import AchievementBadges from "@/components/AchievementBadges";
+import EndpointComparison from "@/components/EndpointComparison";
 
 const statusIcon: Record<string, JSX.Element> = {
   completed: <CheckCircle2 className="w-4 h-4 text-emerald" />,
@@ -35,6 +41,13 @@ export default function Dashboard() {
   const [announcements, setAnnouncements] = useState<any[]>([]);
   const [chartData, setChartData] = useState<any[]>([]);
   const [archived, setArchived] = useState<Record<string, { balance: number; note: string | null; date: string }>>({});
+  const [allTransactions, setAllTransactions] = useState<any[]>([]);
+  const [endpointsList, setEndpointsList] = useState<any[]>([]);
+  const [endpointDetails, setEndpointDetails] = useState<any[]>([]);
+  const animCollected = useCountUp(stats.totalCollected, 1200, 200);
+  const animRate = useCountUp(Math.round(stats.successRate * 10), 1200, 300);
+  const animEndpoints = useCountUp(stats.activeEndpoints, 800, 400);
+  const animPending = useCountUp(stats.pending, 800, 500);
 
   useEffect(() => {
     if (!user) return;
@@ -64,6 +77,7 @@ export default function Dashboard() {
     setArchived(archMap);
 
     const { data: allTxs } = await supabase.from("transactions").select("status, amount, type, created_at").eq("user_id", user.id).is("archived_at", null);
+    setAllTransactions((allTxs as any[]) || []);
     const all = (allTxs as any[]) || [];
     const completed = all.filter((t) => t.status === "completed");
     const deposits = completed.filter((t) => t.type === "deposit" || t.type === "endpoint");
@@ -87,6 +101,9 @@ export default function Dashboard() {
     setChartData(Object.entries(days).map(([date, d]) => ({ date: date.slice(5), ...d })));
 
     const { count: epCount } = await supabase.from("endpoints").select("*", { count: "exact", head: true }).eq("user_id", user.id).eq("status", "active");
+    const { data: allEps } = await supabase.from("endpoints").select("id, status, name, total_collected, total_transactions, successful_transactions").eq("user_id", user.id);
+    setEndpointDetails((allEps as any[]) || []);
+    setEndpointsList((allEps as any[]) || []);
     setStats({ totalCollected, successRate: Math.round(successRate * 10) / 10, activeEndpoints: epCount || 0, pending });
 
     const { data: annData } = await supabase.from("announcements").select("*").eq("is_active", true).order("created_at", { ascending: false }).limit(10);
@@ -125,10 +142,10 @@ export default function Dashboard() {
   };
 
   const quickStats = [
-    { label: "Total Collected", value: `KES ${stats.totalCollected.toLocaleString()}`, icon: CreditCard, gradient: "from-emerald-500 to-teal-600" },
-    { label: "Success Rate", value: `${stats.successRate}%`, icon: Activity, gradient: "from-blue-500 to-cyan-600" },
-    { label: "Active Endpoints", value: String(stats.activeEndpoints), icon: Link2, gradient: "from-indigo-500 to-violet-600" },
-    { label: "Pending Actions", value: String(stats.pending), icon: AlertCircle, gradient: "from-amber-500 to-orange-600" },
+    { label: "Total Collected", value: `KES ${animCollected.toLocaleString()}`, icon: CreditCard, gradient: "from-emerald-500 to-teal-600" },
+    { label: "Success Rate", value: `${(animRate / 10).toFixed(1)}%`, icon: Activity, gradient: "from-blue-500 to-cyan-600" },
+    { label: "Active Endpoints", value: String(animEndpoints), icon: Link2, gradient: "from-indigo-500 to-violet-600" },
+    { label: "Pending Actions", value: String(animPending), icon: AlertCircle, gradient: "from-amber-500 to-orange-600" },
   ];
 
   return (
@@ -316,6 +333,23 @@ export default function Dashboard() {
         </Card>
       </div>
 
+      {/* Endpoint Comparison */}
+      {endpointDetails.length > 0 && (
+        <div className="mb-4 sm:mb-6">
+          <EndpointComparison endpoints={endpointDetails} />
+        </div>
+      )}
+
+      {/* Achievements */}
+      <div className="mb-4 sm:mb-6">
+        <AchievementBadges profile={profile} transactions={allTransactions} endpoints={endpointsList} />
+      </div>
+
+      {/* Heatmap */}
+      <div className="mb-4 sm:mb-6">
+        <TransactionHeatmap transactions={transactions} />
+      </div>
+
       {/* Recent Transactions */}
       <Card className="rounded-[1.75rem] border-border/70">
         <CardHeader className="flex flex-row items-center justify-between pb-4">
@@ -352,6 +386,7 @@ export default function Dashboard() {
                       {statusIcon[tx.status]}
                       <span className={`text-xs capitalize ${tx.status === "completed" ? "text-emerald" : tx.status === "pending" ? "text-amber" : "text-destructive"}`}>{tx.status}</span>
                     </div>
+                    <button onClick={(e) => { e.stopPropagation(); generateReceipt({ ...tx, amount: Number(tx.amount), fee: Number(tx.fee || 0) }); }} className="mt-1 text-[10px] text-primary hover:text-primary/80 flex items-center gap-1 btn-press"><Download className="w-3 h-3" /> Receipt</button>
                   </div>
                 </motion.div>
               ))}

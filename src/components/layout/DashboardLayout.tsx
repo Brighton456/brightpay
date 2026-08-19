@@ -6,10 +6,12 @@ import {
   LayoutDashboard, ArrowLeftRight, Link2, ShieldCheck, FileText,
   Settings, LogOut, Wallet, ChevronLeft, ChevronRight,
   Bell, User, Zap, Crown, Lock, TrendingUp, Menu, X, Shield,
-  MessageCircle, Gift, Megaphone, HelpCircle, Smartphone, Heart, DollarSign, Radio, CreditCard
+  MessageCircle, Gift, Megaphone, HelpCircle, Smartphone, Heart, DollarSign, Radio, CreditCard, Upload
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTransactionNotifications } from "@/hooks/use-transaction-notifications";
+import QuickPayFAB from "@/components/QuickPayFAB";
 
 const allNavItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard", minTier: "idle" },
@@ -21,6 +23,7 @@ const allNavItems = [
   { icon: DollarSign, label: "Lipwa Links", path: "/lipwa", minTier: "beginner" },
   { icon: MessageCircle, label: "Channels", path: "/channels", minTier: "active" },
   { icon: CreditCard, label: "Virtual Cards", path: "/cards", minTier: "active" },
+  { icon: Upload, label: "Bulk Pay", path: "/bulk-pay", minTier: "beginner" },
 
   { icon: ShieldCheck, label: "KYC Verification", path: "/kyc", minTier: "idle" },
   { icon: Crown, label: "Pricing & Tiers", path: "/pricing", minTier: "idle" },
@@ -46,6 +49,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { user, profile, isAdmin, signOut } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  useTransactionNotifications(user?.id);
 
   const userStatus = profile?.account_status || "idle";
   const statusInfo = statusConfig[userStatus];
@@ -183,6 +187,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </main>
       </div>
 
+      <QuickPayFAB />
       <AiAssistant contextHint="Need help navigating? Ask me anything about BrightPay!" />
     </div>
   );

@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ThemeProvider } from "next-themes";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
@@ -27,6 +28,7 @@ import Lipwa from "./pages/Lipwa";
 import Channels from "./pages/Channels";
 import Pay from "./pages/Pay";
 import Cards from "./pages/Cards";
+import BulkPay from "./pages/BulkPay";
 import NotFound from "./pages/NotFound";
 
 
@@ -34,6 +36,7 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
     <TooltipProvider>
       <Toaster />
       <Sonner />
@@ -62,12 +65,14 @@ const App = () => (
             <Route path="/channels" element={<ProtectedRoute><Channels /></ProtectedRoute>} />
             <Route path="/cards" element={<ProtectedRoute><Cards /></ProtectedRoute>} />
 
-            <Route path="/pay/:apiKey" element={<Pay />} />
+            <Route path="/bulk-pay" element={<ProtectedRoute><BulkPay /></ProtectedRoute>} />
+        <Route path="/pay/:apiKey" element={<Pay />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
+  </ThemeProvider>
   </QueryClientProvider>
 );
 

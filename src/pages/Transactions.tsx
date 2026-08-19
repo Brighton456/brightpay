@@ -13,6 +13,7 @@ import DashboardLayout from "@/components/layout/DashboardLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { exportTransactionsPDF } from "@/lib/pdf-export";
+import { generateReceipt } from "@/lib/receipt";
 
 const statusIcon: Record<string, JSX.Element> = {
   completed: <CheckCircle2 className="w-4 h-4 text-emerald-500" />,
@@ -219,6 +220,7 @@ export default function Transactions() {
                       <div><div className="text-muted-foreground">Amount</div><div>KES {Number(tx.amount).toLocaleString()}</div></div>
                       <div><div className="text-muted-foreground">Updated</div><div>{new Date(tx.updated_at).toLocaleString()}</div></div>
                       <div className="col-span-full"><div className="text-muted-foreground">Status note</div><div className={tx.status === "failed" ? "text-destructive" : "text-foreground"}>{safeStatusNote(tx)}</div></div>
+                      <div className="col-span-full"><button onClick={(e) => { e.stopPropagation(); generateReceipt({ ...tx, amount: Number(tx.amount), fee: Number(tx.fee || 0) }); }} className="text-xs text-primary hover:text-primary/80 flex items-center gap-1 btn-press font-semibold"><Download className="w-3 h-3" /> Download Receipt</button></div>
                     </div>
                   )}
                 </CardContent>

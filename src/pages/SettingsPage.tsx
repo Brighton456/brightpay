@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { User, Crown, Zap, Lock, ArrowRight, CheckCircle2, Shield, Bell, AlertTriangle } from "lucide-react";
+import { User, Crown, Zap, Lock, ArrowRight, CheckCircle2, Shield, Bell, AlertTriangle, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,10 +10,12 @@ import DashboardLayout from "@/components/layout/DashboardLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useTheme } from "next-themes";
 
 export default function SettingsPage() {
   const { user, profile, serviceBalance, refreshProfile, refreshWallets } = useAuth();
   const { toast } = useToast();
+  const { theme, setTheme } = useTheme();
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [saving, setSaving] = useState(false);
@@ -130,6 +132,28 @@ export default function SettingsPage() {
                 <Switch defaultChecked />
               </div>
             ))}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader><CardTitle className="text-lg flex items-center gap-2"><Bell className="w-5 h-5" /> Appearance</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-foreground">Theme</p>
+                <p className="text-xs text-muted-foreground">Switch between light, dark, or system theme</p>
+              </div>
+              <div className="flex gap-1 rounded-lg bg-muted p-1">
+                {["light", "dark", "system"].map((t) => (
+                  <button key={t} onClick={() => setTheme(t)}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors capitalize ${
+                      theme === t ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                    }`}>
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
