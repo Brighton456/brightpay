@@ -29,6 +29,26 @@ import BillSplitter from "@/components/BillSplitter";
 import SmartAmountChips from "@/components/SmartAmountChips";
 import WeeklySummary from "@/components/WeeklySummary";
 import ActivityTimeline from "@/components/ActivityTimeline";
+import LiveClock from "@/components/LiveClock";
+import TransactionPieChart from "@/components/TransactionPieChart";
+import SuccessRateGauge from "@/components/SuccessRateGauge";
+import DailyAverage from "@/components/DailyAverage";
+import FavoriteTransactions from "@/components/FavoriteTransactions";
+import SparklineChart from "@/components/SparklineChart";
+import TotalVolumeCard from "@/components/TotalVolumeCard";
+import TopRecipients from "@/components/TopRecipients";
+import MonthlyGoal from "@/components/MonthlyGoal";
+import TransactionCostBreakdown from "@/components/TransactionCostBreakdown";
+import ApiUsageStats from "@/components/ApiUsageStats";
+import ScheduledPayments from "@/components/ScheduledPayments";
+import SplitCalculator from "@/components/SplitCalculator";
+import QuickLinksGrid from "@/components/QuickLinksGrid";
+import QuickTransferForm from "@/components/QuickTransferForm";
+import SystemStatusMini from "@/components/SystemStatusMini";
+import AccountAgeCard from "@/components/AccountAgeCard";
+import ReferralStats from "@/components/ReferralStats";
+import TransactionSpeedMeter from "@/components/TransactionSpeedMeter";
+import QuickStatsRow from "@/components/QuickStatsRow";
 
 const statusIcon: Record<string, JSX.Element> = {
   completed: <CheckCircle2 className="w-4 h-4 text-emerald" />,
@@ -156,6 +176,7 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout>
+      <LiveClock />
       <GuidedOnboarding fullName={profile?.full_name} accountStatus={profile?.account_status} createdAt={(profile as any)?.created_at} />
 
       {/* Announcements Banner */}
@@ -368,6 +389,37 @@ export default function Dashboard() {
           <PaymentTemplates onUse={(phone, amt, ref) => { toast({ title: "Template ready", description: `KES ${amt.toLocaleString()} to ${phone || "any phone"}` }); }} />
           <ActivityTimeline transactions={transactions} />
         </div>
+      </div>
+
+
+      {/* Analytics Grid */}
+      <div className="mb-4 sm:mb-6 grid md:grid-cols-2 gap-4 sm:gap-6">
+        <div className="space-y-4 sm:space-y-6">
+          <TotalVolumeCard transactions={allTransactions} />
+          <QuickStatsRow transactions={allTransactions} />
+          <TransactionPieChart transactions={allTransactions} />
+          <SuccessRateGauge rate={stats.successRate} />
+          <DailyAverage transactions={allTransactions} />
+          <TopRecipients transactions={transactions} />
+          <TransactionCostBreakdown transactions={allTransactions} />
+        </div>
+        <div className="space-y-4 sm:space-y-6">
+          <MonthlyGoal transactions={allTransactions} />
+          <TransactionSpeedMeter transactions={allTransactions} />
+          <ApiUsageStats transactions={allTransactions} />
+          <ScheduledPayments />
+          <SplitCalculator />
+          <FavoriteTransactions />
+          <ReferralStats profile={profile} />
+          <SystemStatusMini />
+          <AccountAgeCard createdAt={(profile as any)?.created_at} />
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="mb-4 sm:mb-6 grid md:grid-cols-2 gap-4 sm:gap-6">
+        <QuickLinksGrid />
+        <QuickTransferForm />
       </div>
 
       {/* Recent Transactions */}

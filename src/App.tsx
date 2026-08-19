@@ -29,6 +29,8 @@ import Channels from "./pages/Channels";
 import Pay from "./pages/Pay";
 import Cards from "./pages/Cards";
 import BulkPay from "./pages/BulkPay";
+import KeyboardShortcuts from "@/components/KeyboardShortcuts";
+import OfflineIndicator from "@/components/OfflineIndicator";
 import NotFound from "./pages/NotFound";
 
 
@@ -37,6 +39,8 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <OfflineIndicator />
+    <KeyboardShortcuts />
     <TooltipProvider>
       <Toaster />
       <Sonner />
