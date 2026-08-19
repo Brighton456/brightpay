@@ -128,12 +128,16 @@ Deno.serve(async (req) => {
     let userName: string;
     let skipAuth = false;
 
-    // Support both webhook (no auth) and authenticated calls
+    // Support three call formats:
+    // 1. GoTrue after_user_created hook: { user: { id, email, ... } } (no Authorization header)
+    // 2. Direct webhook: { user_id: "..." } (no Authorization header)
+    // 3. Authenticated: admin/user calling with session JWT + { user_id: "..." }
     const authHeader = req.headers.get("Authorization");
+    const body = await req.json().catch(() => ({}));
+
     if (!authHeader) {
-      // Webhook mode — expect user_id in body
-      const body = await req.json();
-      userId = body.user_id;
+      // Webhook mode — GoTrue hook or direct call
+      userId = body.user?.id || body.user_id;
       if (!userId) {
         return new Response(JSON.stringify({ error: "user_id required" }), {
           status: 400,
@@ -158,7 +162,6 @@ Deno.serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
 
-      const body = await req.json().catch(() => ({}));
       // Admin can send for any user; users can only send for themselves
       userId = body.user_id || user.id;
 
@@ -182,21 +185,44 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Fetch user info
-    const { data: authUser } = await supabase.auth.admin.getUserById(userId);
-    if (!authUser?.user?.email)
-      return new Response(JSON.stringify({ error: "User not found" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-
-    userEmail = authUser.user.email;
-    const { data: profile } = await supabase
+    // Idempotency: check if welcome email already sent
+    const { data: existingProfile } = await supabase
       .from("profiles")
-      .select("full_name")
+      .select("full_name, welcome_email_sent")
       .eq("id", userId)
       .single();
-    userName = profile?.full_name || "";
+    if ((existingProfile as any)?.welcome_email_sent) {
+      return new Response(
+        JSON.stringify({ success: true, skipped: true, reason: "already_sent" }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Mark as sent first (idempotent — prevents concurrent double-sends)
+    await supabase
+      .from("profiles")
+      .update({ welcome_email_sent: true })
+      .eq("id", userId);
+
+    // Fetch user info
+    const { data: authUser } = await supabase.auth.admin.getUserById(userId);
+    if (!authUser?.user?.email) {
+      // Profile might not exist yet (GoTrue hook fires before DB trigger)
+      // Just skip silently
+      return new Response(
+        JSON.stringify({ success: true, skipped: true, reason: "user_not_found" }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    userEmail = authUser.user.email;
+    userName = existingProfile?.full_name || body.user?.raw_user_meta_data?.full_name || "";
 
     // Send via Brevo Transactional Email API
     const smtpKey =
