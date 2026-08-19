@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, Check, X, Wallet, ArrowDownRight, ArrowUpRight, Zap } from "lucide-react";
+import { Bell, Check, X, ArrowDownRight, ArrowUpRight, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 

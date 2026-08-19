@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarDays, TrendingUp, TrendingDown, Activity, Zap } from "lucide-react";
+import { CalendarDays, TrendingUp, Activity, Zap } from "lucide-react";
 
 interface Props { transactions: any[]; incomeBalance: number; serviceBalance: number; }
 

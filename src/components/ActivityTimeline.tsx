@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Clock, ArrowDownRight, ArrowUpRight, Send, Zap, CheckCircle2, XCircle } from "lucide-react";
+import { Clock, ArrowDownRight, ArrowUpRight, Send, CheckCircle2, XCircle } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface Props { transactions: any[]; }
