@@ -49,6 +49,8 @@ import AccountAgeCard from "@/components/AccountAgeCard";
 import ReferralStats from "@/components/ReferralStats";
 import TransactionSpeedMeter from "@/components/TransactionSpeedMeter";
 import QuickStatsRow from "@/components/QuickStatsRow";
+import TrendArrow from "@/components/TrendArrow";
+import ShareButton from "@/components/ShareButton";
 
 const statusIcon: Record<string, JSX.Element> = {
   completed: <CheckCircle2 className="w-4 h-4 text-emerald" />,
@@ -176,7 +178,16 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout>
-      <LiveClock />
+      <div className="flex items-center gap-3 flex-wrap">
+        <LiveClock />
+        {allTransactions.length > 5 && (
+          <TrendArrow
+            current={allTransactions.filter(t => t.status === "completed" && (t.type === "deposit" || t.type === "endpoint")).slice(0, 5).reduce((s, t) => s + Number(t.amount), 0)}
+            previous={allTransactions.filter(t => t.status === "completed" && (t.type === "deposit" || t.type === "endpoint")).slice(5, 10).reduce((s, t) => s + Number(t.amount), 0)}
+            label="Recent Trend"
+          />
+        )}
+      </div>
       <GuidedOnboarding fullName={profile?.full_name} accountStatus={profile?.account_status} createdAt={(profile as any)?.created_at} />
 
       {/* Announcements Banner */}
@@ -219,6 +230,7 @@ export default function Dashboard() {
                   </Button>
                 </Link>
               ))}
+              <ShareButton title="BrightPay" text="Check out BrightPay — M-Pesa payment processing platform!" url={window.location.origin} />
             </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
@@ -311,6 +323,13 @@ export default function Dashboard() {
               </div>
               <div className="text-2xl font-black tracking-tight">{stat.value}</div>
               <div className="text-xs mt-1 opacity-75">{stat.label}</div>
+              {stat.label === "Total Collected" && allTransactions.length > 0 && (
+                <SparklineChart
+                  data={allTransactions.filter(t => t.status === "completed" && (t.type === "deposit" || t.type === "endpoint")).reverse().map((t, _, arr) => arr.slice(0, Math.min(arr.length, 20)).reduce((s: number, tt: any, idx: number) => idx <= arr.indexOf(t) ? s + Number(tt.amount) : s, 0))}
+                  color="rgba(255,255,255,0.6)"
+                  height={24}
+                />
+              )}
             </div>
           </motion.div>
         ))}

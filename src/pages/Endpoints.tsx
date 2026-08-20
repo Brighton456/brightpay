@@ -32,6 +32,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { buildCallbackUrl, DEFAULT_CALLBACK_PATH, getEndpointLimit, getSiteFromCallbackUrl, normalizeSiteUrl } from "@/lib/endpoint-utils";
 import EndpointQR from "@/components/EndpointQR";
 import PaymentLinkGenerator from "@/components/PaymentLinkGenerator";
+import EndpointHealthBadge from "@/components/EndpointHealthBadge";
+import EndpointUptimeCounter from "@/components/EndpointUptimeCounter";
 
 export default function Endpoints() {
   const { user, profile } = useAuth();
@@ -427,6 +429,7 @@ export default function Endpoints() {
                       <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="text-sm font-bold text-foreground">{ep.name}</h3>
                         <span className="status-success">Active</span>
+                        <EndpointHealthBadge endpoint={ep} />
                         <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-1 text-[10px] font-semibold text-primary"><CheckCircle2 className="w-3 h-3" /> Auto callback</span>
                       </div>
                       <p className="text-xs text-muted-foreground truncate">{getSiteFromCallbackUrl(ep.callback_url)}</p>
@@ -522,6 +525,7 @@ Generate a complete frontend-only integration with error handling.`}</pre>
                               </div>
                             </div>
                             <ApiSecuritySection endpoint={ep} projectId={projectId} onChange={fetchEndpoints} copy={copyToClipboard} />
+                            <EndpointUptimeCounter endpoint={ep} />
                             <div className="flex items-center gap-3 flex-wrap">
                               <EndpointQR endpointId={ep.id} apiKey={ep.api_key} projectName={ep.name} />
                               <PaymentLinkGenerator apiKey={ep.api_key} endpointName={ep.name} />
