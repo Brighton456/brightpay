@@ -29,6 +29,11 @@ import Channels from "./pages/Channels";
 import Pay from "./pages/Pay";
 import Cards from "./pages/Cards";
 import BulkPay from "./pages/BulkPay";
+import About from "./pages/About";
+import SystemStatus from "./pages/SystemStatus";
+import ApiReference from "./pages/ApiReference";
+import HelpCenter from "./pages/HelpCenter";
+import Legal from "./pages/Legal";
 import KeyboardShortcuts from "@/components/KeyboardShortcuts";
 import OfflineIndicator from "@/components/OfflineIndicator";
 import NotFound from "./pages/NotFound";
@@ -70,6 +75,11 @@ const App = () => (
             <Route path="/cards" element={<ProtectedRoute><Cards /></ProtectedRoute>} />
 
             <Route path="/bulk-pay" element={<ProtectedRoute><BulkPay /></ProtectedRoute>} />
+        <Route path="/about" element={<About />} />
+        <Route path="/system-status" element={<SystemStatus />} />
+        <Route path="/api-reference" element={<ApiReference />} />
+        <Route path="/help" element={<ProtectedRoute><HelpCenter /></ProtectedRoute>} />
+        <Route path="/legal" element={<Legal />} />
         <Route path="/pay/:apiKey" element={<Pay />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

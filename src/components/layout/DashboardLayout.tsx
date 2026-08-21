@@ -6,7 +6,8 @@ import {
   LayoutDashboard, ArrowLeftRight, Link2, ShieldCheck, FileText,
   Settings, LogOut, Wallet, ChevronLeft, ChevronRight,
   Bell, User, Zap, Crown, Lock, TrendingUp, Menu, X, Shield,
-  MessageCircle, Gift, Megaphone, HelpCircle, Smartphone, Heart, DollarSign, Radio, CreditCard, Upload
+  MessageCircle, Gift, Megaphone, HelpCircle, Smartphone, Heart, DollarSign, Radio, CreditCard, Upload,
+  Globe, Activity, Code2, BookOpen, Scale
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -34,6 +35,13 @@ const allNavItems = [
   { icon: MessageCircle, label: "Support", path: "/support", minTier: "idle" },
   { icon: HelpCircle, label: "Feature Requests", path: "/feature-requests", minTier: "idle" },
   { icon: Smartphone, label: "Get the App", path: "/install", minTier: "idle" },
+
+  { icon: Globe, label: "About Us", path: "/about", minTier: "idle" },
+  { icon: Activity, label: "System Status", path: "/system-status", minTier: "idle" },
+  { icon: Code2, label: "API Reference", path: "/api-reference", minTier: "idle" },
+  { icon: BookOpen, label: "Help Center", path: "/help", minTier: "idle" },
+  { icon: Scale, label: "Legal", path: "/legal", minTier: "idle" },
+
   { icon: Settings, label: "Settings", path: "/settings", minTier: "idle" },
 ];
 
